@@ -72,10 +72,12 @@ angular.module('signature').directive('signaturePad', ['$window', '$timeout',
       ],
       link: function (scope, element, attrs) {
         canvas = element.find('canvas')[0];
+        canvas.width = element.width();
+        canvas.height = element.height();
         scope.signaturePad = new SignaturePad(canvas);
         
 
-        scope.onResize = function() {
+        scope.onResize = function(width, height) {
           var canvas = element.find('canvas')[0],
           context = canvas.getContext('2d'),
           devicePixelRatio  = window.devicePixelRatio || 1,
@@ -88,8 +90,17 @@ angular.module('signature').directive('signaturePad', ['$window', '$timeout',
 
           if (devicePixelRatio !== backingStoreRatio)
           {          
-            var oldWidth = canvas.offsetWidth;
-            var oldHeight = canvas.offsetHeight;
+            var oldWidth, oldHeight;
+            if(!!width && !!height)
+            {
+              oldWidth = width;
+              oldHeight = height;
+            }
+            else
+            {
+              oldWidth = canvas.offsetWidth;
+              oldHeight = canvas.offsetHeight;
+            }
 
             canvas.width = oldWidth * ratio;
             canvas.height = oldHeight * ratio;
@@ -99,9 +110,11 @@ angular.module('signature').directive('signaturePad', ['$window', '$timeout',
 
             context.scale(ratio, ratio);
           }
-          // reset dataurl
-          scope.dataurl = null;
+          if (scope.dataurl) {
+            scope.signaturePad.fromDataURL(scope.dataurl);
+          }
         }
+
         function onTouchstart() {
           scope.$apply(function () {
             // notify that drawing has started
@@ -129,14 +142,10 @@ angular.module('signature').directive('signaturePad', ['$window', '$timeout',
           }
         }, 500).then(function()
         {
-          if (scope.signature && !scope.signature.$isEmpty && scope.signature.dataUrl) {
-            scope.signaturePad.fromDataURL(scope.signature.dataUrl);
-          }
-
           scope.onResize();
 
-          angular.element($window).bind('resize', function() {
-              scope.onResize();
+          angular.element($window).bind('resize', function(event) {
+              scope.onResize(element.width(), element.height());
           });
 
           element.on('touchstart', onTouchstart);
