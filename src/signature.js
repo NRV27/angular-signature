@@ -13,7 +13,7 @@ angular.module('signature').directive('signaturePad', ['$window', '$timeout',
     return {
       restrict: 'EA',
       replace: true,
-      template: '<div class="signature" ng-style="{height: height + \'px\', width: width + \'px\'}"><canvas ng-mouseup="onMouseup()" ng-mousedown="notifyDrawing({ drawing: true })"></canvas></div>',
+      template: '<div class="signature" ng-mouseout="onMouseout()" ng-style="{height: height + \'px\', width: width + \'px\'}"><canvas ng-mouseup="onMouseup()" ng-mousedown="onMousedown"></canvas></div>',
       scope: {
         accept: '=',
         clear: '=',
@@ -38,7 +38,13 @@ angular.module('signature').directive('signaturePad', ['$window', '$timeout',
 
             return signature;
           };
-
+          $scope.onMouseout = function() {
+            $scope.onMouseup();
+          }
+          $scope.onMousedown = function()
+          {
+            notifyDrawing({ drawing: true });
+          }
           $scope.onMouseup = function () {
             $scope.updateModel();
 
@@ -88,8 +94,8 @@ angular.module('signature').directive('signaturePad', ['$window', '$timeout',
                                  context.backingStorePixelRatio || 1,
           ratio = devicePixelRatio / backingStoreRatio;
 
-          if (devicePixelRatio !== backingStoreRatio)
-          {          
+          //if (devicePixelRatio !== backingStoreRatio)
+          //{          
             var oldWidth, oldHeight;
             if(!!width && !!height)
             {
@@ -109,7 +115,7 @@ angular.module('signature').directive('signaturePad', ['$window', '$timeout',
             canvas.style.height = oldHeight + 'px';
 
             context.scale(ratio, ratio);
-          }
+          //}
           if (scope.dataurl) {
             scope.signaturePad.fromDataURL(scope.dataurl);
           }
